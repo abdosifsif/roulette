@@ -1,8 +1,11 @@
-// app_roulette_event.dart
+// lib/bloc/app_roulette_event.dart
 import 'package:equatable/equatable.dart';
 
 abstract class RouletteEvent extends Equatable {
   const RouletteEvent();
+
+  @override
+  List<Object?> get props => [];
 }
 
 class StartRoulette extends RouletteEvent {
@@ -11,10 +14,10 @@ class StartRoulette extends RouletteEvent {
 }
 
 // Add this class
-class StopRoulette extends RouletteEvent {
+class SetRouletteResult extends RouletteEvent {
   final String result;
 
-  const StopRoulette(this.result);
+  const SetRouletteResult(this.result);
 
   @override
   List<Object?> get props => [result];

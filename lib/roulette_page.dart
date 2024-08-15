@@ -1,3 +1,4 @@
+// lib/roulette_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:roulette/roulette.dart';
@@ -13,7 +14,8 @@ class RoulettePage extends StatefulWidget {
   State<RoulettePage> createState() => _RoulettePageState();
 }
 
-class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderStateMixin {
+class _RoulettePageState extends State<RoulettePage>
+    with SingleTickerProviderStateMixin {
   late RouletteController _rouletteController;
 
   @override
@@ -31,7 +33,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
     // Initialize the roulette controller
     _rouletteController = RouletteController(
       group: RouletteGroup(units),
-      vsync: this, // TickerProvider, usually from SingleTickerProviderStateMixin
+      vsync: this,
     );
   }
 
@@ -50,8 +52,9 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
       body: BlocConsumer<RouletteBloc, RouletteState>(
         listener: (context, state) {
           if (state is RouletteStopped) {
+            // Show SnackBar with result when roulette stops
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Result: ${state.result}')),
+              SnackBar(content: Text(state.result)),
             );
           }
         },
@@ -60,13 +63,31 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                // Roulette widget
-                Roulette(
-                  controller: _rouletteController,
-                  style: const RouletteStyle(
-                    dividerThickness: 4.0,
-                    textLayoutBias: .8,
-                    textStyle: TextStyle(fontSize: 20),
+                // Roulette with custom arrow pointer
+                SizedBox(
+                  height: 300, // Adjust height as needed
+                  width: 300, // Adjust width as needed
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Roulette widget
+                      Roulette(
+                        controller: _rouletteController,
+                        style: const RouletteStyle(
+                          dividerThickness: 4.0,
+                          textLayoutBias: .8,
+                          textStyle: TextStyle(fontSize: 20),
+                        ),
+                      ),
+                      // Arrow indicator using a custom ClipPath
+                      Positioned(
+                        top: -10, // Adjust to position the arrow correctly
+                        child: CustomPaint(
+                          size: const Size(30, 30), // Adjust the size of the arrow
+                          painter: _ArrowPainter(color: Colors.orange), // Change color as needed
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -88,8 +109,9 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
                     // Spin the roulette
                     await _rouletteController.rollTo(selectedUnit, offset: offset);
 
-                    // Stop the roulette with the selected result
-                    context.read<RouletteBloc>().add(StopRoulette('Prize ${selectedUnit + 1}'));
+                    // Dispatch the SetRouletteResult event with the determined prize
+                    final prizeMessage = context.read<RouletteBloc>().determinePrize(selectedUnit);
+                    context.read<RouletteBloc>().add(SetRouletteResult(prizeMessage));
                   },
                   child: const Text('Spin Roulette'),
                 ),
@@ -100,4 +122,28 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
       ),
     );
   }
+}
+
+// Custom painter class for the downward pointing arrow indicator
+class _ArrowPainter extends CustomPainter {
+  final Color color;
+
+  _ArrowPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = Path();
+
+    // Define the path for a downward pointing triangle
+    path.moveTo(size.width / 2, size.height); // Starting at bottom center
+    path.lineTo(size.width, 0); // Top right corner
+    path.lineTo(0, 0); // Top left corner
+    path.close(); // Close the path to form a triangle
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
