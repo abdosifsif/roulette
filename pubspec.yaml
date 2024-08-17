@@ -7,11 +7,13 @@ environment:
   sdk: '>=3.4.4 <4.0.0'
 
 dependencies:
+  bloc: ^8.1.4
   equatable: ^2.0.5
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.0
   roulette: ^0.1.5
+  shared_preferences: ^2.0.13
 
 dev_dependencies:
   flutter_test:

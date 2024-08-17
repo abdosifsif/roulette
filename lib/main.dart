@@ -1,3 +1,5 @@
+import 'package:app_roulette/add_prize.dart';
+import 'package:app_roulette/edit_prize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_roulette/bloc/app_roulette_bloc.dart';
@@ -20,6 +22,10 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.purple,
         ),
         home: const RoulettePage(),
+        routes: {
+          '/addPrize': (context) => const AddPrizePage(),
+          '/edit': (context) => const EditPrizesPage(),
+        },
       ),
     );
   }
