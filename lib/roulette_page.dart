@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:roulette/roulette.dart';
 import 'package:app_roulette/bloc/app_roulette_bloc.dart';
 import 'package:app_roulette/bloc/app_roulette_event.dart';
 import 'package:app_roulette/bloc/app_roulette_state.dart';
+import 'package:roulette/roulette.dart';
 import 'dart:math';
 
 class RoulettePage extends StatefulWidget {
-  const RoulettePage({Key? key}) : super(key: key);
+  const RoulettePage({super.key});
 
   @override
   State<RoulettePage> createState() => _RoulettePageState();
 }
 
-class _RoulettePageState extends State<RoulettePage>
-    with SingleTickerProviderStateMixin {
+class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMixin {
   RouletteController? _rouletteController;
+  List<String> _prizes = [];
 
   @override
   void initState() {
@@ -29,14 +29,73 @@ class _RoulettePageState extends State<RoulettePage>
     super.dispose();
   }
 
+  void _initializeRouletteController(List<String> prizes) {
+    final colors = _generateColors(prizes.length);
+    _rouletteController?.dispose();
+    _rouletteController = RouletteController(
+      group: RouletteGroup(
+        prizes.asMap().entries.map((entry) {
+          final index = entry.key;
+          final prize = entry.value;
+          return RouletteUnit.text(
+            prize,
+            color: colors[index],
+          );
+        }).toList(),
+      ),
+      vsync: this,
+    );
+    setState(() {
+      _prizes = prizes;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Roulette App'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () async {
+              if (_prizes.isNotEmpty) {
+                final result = await Navigator.pushNamed(
+                  context,
+                  '/editPrize',
+                  arguments: {
+                    'index': 0, // Pass the correct index here
+                    'currentPrize': _prizes[0], // Pass the current prize
+                  },
+                );
+                if (result == true) {
+                  context.read<RouletteBloc>().add(LoadPrizes());
+                }
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('No prizes to edit')),
+                );
+              }
+            },
+            tooltip: 'Edit Prize',
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () async {
+              final result = await Navigator.pushNamed(context, '/addPrize');
+              if (result == true) {
+                context.read<RouletteBloc>().add(LoadPrizes());
+              }
+            },
+            tooltip: 'Add Prize',
+          ),
+        ],
       ),
       body: BlocConsumer<RouletteBloc, RouletteState>(
         listener: (context, state) {
+          if (state is PrizesLoaded) {
+            _initializeRouletteController(state.prizes);
+          }
           if (state is RouletteStopped) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.result)),
@@ -44,15 +103,6 @@ class _RoulettePageState extends State<RoulettePage>
           }
         },
         builder: (context, state) {
-          if (state is PrizesLoaded) {
-            _rouletteController = RouletteController(
-              group: RouletteGroup(state.prizes
-                  .map((prize) => RouletteUnit.text(prize))
-                  .toList()),
-              vsync: this,
-            );
-          }
-
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -71,7 +121,9 @@ class _RoulettePageState extends State<RoulettePage>
                             textLayoutBias: .8,
                             textStyle: TextStyle(fontSize: 20),
                           ),
-                        ),
+                        )
+                      else
+                        const Text('Loading Roulette...'),
                       Positioned(
                         top: -10,
                         child: CustomPaint(
@@ -91,19 +143,31 @@ class _RoulettePageState extends State<RoulettePage>
                 ElevatedButton(
                   onPressed: () async {
                     final random = Random();
-                    final int selectedUnit = random.nextInt(
-                        _rouletteController!.group.units.length);
-                    final double offset = random.nextDouble();
+                    if (_rouletteController?.group.units.isNotEmpty ?? false) {
+                      final int selectedUnit = random.nextInt(
+                        _rouletteController!.group.units.length,
+                      );
+                      final double offset = random.nextDouble();
 
-                    context.read<RouletteBloc>().add(StartRoulette());
+                      context.read<RouletteBloc>().add(StartRoulette());
 
-                    await _rouletteController!.rollTo(selectedUnit,
-                        offset: offset);
+                      await _rouletteController!.rollTo(
+                        selectedUnit,
+                        offset: offset,
+                      );
 
-                    final prizeMessage = context
-                        .read<RouletteBloc>()
-                        .determinePrize(selectedUnit, (state as PrizesLoaded).prizes);
-                    context.read<RouletteBloc>().add(SetRouletteResult(prizeMessage));
+                      final prizeMessage = context
+                          .read<RouletteBloc>()
+                          .determinePrize(selectedUnit, _prizes);
+
+                      context
+                          .read<RouletteBloc>()
+                          .add(SetRouletteResult(prizeMessage));
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Prizes are not loaded yet!')),
+                      );
+                    }
                   },
                   child: const Text('Spin Roulette'),
                 ),
@@ -112,14 +176,21 @@ class _RoulettePageState extends State<RoulettePage>
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/addPrize');
-        },
-        child: const Icon(Icons.add),
-        tooltip: 'Add Prize',
-      ),
     );
+  }
+
+  List<Color> _generateColors(int count) {
+    final List<Color> colors = [];
+    final Random random = Random();
+    for (int i = 0; i < count; i++) {
+      colors.add(Color.fromARGB(
+        255,
+        random.nextInt(256),
+        random.nextInt(256),
+        random.nextInt(256),
+      ));
+    }
+    return colors;
   }
 }
 
