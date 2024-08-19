@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_roulette/bloc/app_roulette_bloc.dart';
-import 'package:app_roulette/roulette_page.dart';
-import 'package:app_roulette/add_prize.dart';
-import 'package:app_roulette/edit_prize.dart';
+import 'package:app_roulette/pages/roulette_page.dart';
+import 'package:app_roulette/pages/add_prize.dart';
+import 'package:app_roulette/pages/edit_prize.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         home: const RoulettePage(),
         routes: {
           '/addPrize': (context) => const AddPrizePage(),
-          // Note: Use onGenerateRoute for EditPrizesPage due to parameters
+        
         },
         onGenerateRoute: (settings) {
           if (settings.name == '/editPrize') {
@@ -35,7 +35,6 @@ class MyApp extends StatelessWidget {
               builder: (context) => EditPrizesPage(index: index, currentPrize: currentPrize),
             );
           }
-          // Return null if the route is not handled
           return null;
         },
       ),
