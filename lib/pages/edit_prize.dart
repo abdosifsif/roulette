@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api, use_super_parameters
+
 import 'package:app_roulette/bloc/app_roulette_event.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -54,8 +56,8 @@ class _EditPrizesPageState extends State<EditPrizesPage> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       _prizes.removeAt(index);
       await prefs.setStringList('prizes', _prizes);
-      context.read<RouletteBloc>().add(LoadPrizes()); // Notify the bloc to reload prizes
-      Navigator.pop(context, true); // Notify success
+      context.read<RouletteBloc>().add(LoadPrizes()); 
+      Navigator.pop(context, true); 
     }
   }
 
@@ -70,8 +72,8 @@ class _EditPrizesPageState extends State<EditPrizesPage> {
       ),
     );
     if (result == true) {
-      context.read<RouletteBloc>().add(LoadPrizes()); // Reload prizes after editing
-      Navigator.pop(context, true); // Return to home if prize was edited
+      context.read<RouletteBloc>().add(LoadPrizes()); 
+      Navigator.pop(context, true); 
     }
   }
 
@@ -107,8 +109,9 @@ class _EditPrizesPageState extends State<EditPrizesPage> {
             MaterialPageRoute(builder: (context) => const AddPrizePage()),
           );
           if (result == true) {
-            context.read<RouletteBloc>().add(LoadPrizes()); // Reload prizes after adding
-            Navigator.pop(context, true); // Return to home if a prize was added
+            context.read<RouletteBloc>().add(LoadPrizes()); 
+            // ignore: use_build_context_synchronously
+            Navigator.pop(context, true); 
           }
         },
         child: const Icon(Icons.add),

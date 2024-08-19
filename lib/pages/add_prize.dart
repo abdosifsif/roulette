@@ -7,11 +7,11 @@ class AddPrizePage extends StatelessWidget {
   final String? prize;
   final int? index;
 
-  const AddPrizePage({Key? key, this.prize, this.index}) : super(key: key);
+  const AddPrizePage({super.key, this.prize, this.index});
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _prizeController =
+    final TextEditingController prizeController =
         TextEditingController(text: prize);
 
     return Scaffold(
@@ -23,19 +23,19 @@ class AddPrizePage extends StatelessWidget {
         child: Column(
           children: [
             TextField(
-              controller: _prizeController,
+              controller: prizeController,
               decoration: const InputDecoration(labelText: 'Prize'),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                final newPrize = _prizeController.text;
+                final newPrize = prizeController.text;
                 if (newPrize.isNotEmpty) {
                   if (index != null) {
-                    // Edit existing prize
+                    
                     context.read<RouletteBloc>().add(EditPrize(index!, newPrize));
                   } else {
-                    // Add new prize
+                    
                     context.read<RouletteBloc>().add(AddPrize(newPrize));
                   }
                   Navigator.pop(context, true); // Notify success

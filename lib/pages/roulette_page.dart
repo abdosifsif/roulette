@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_roulette/bloc/app_roulette_bloc.dart';
@@ -64,8 +66,8 @@ class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMix
                   context,
                   '/editPrize',
                   arguments: {
-                    'index': 0, // Pass the correct index here
-                    'currentPrize': _prizes[0], // Pass the current prize
+                    'index': 0, 
+                    'currentPrize': _prizes[0], 
                   },
                 );
                 if (result == true) {
