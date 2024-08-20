@@ -1,31 +1,30 @@
-import 'package:equatable/equatable.dart';
+// lib/bloc/app_roulette_state.dart
+import 'package:app_roulette/models/prize.dart';
 
-abstract class RouletteState extends Equatable {
-  const RouletteState();
-
-  @override
-  List<Object> get props => [];
-}
+abstract class RouletteState {}
 
 class RouletteInitial extends RouletteState {}
 
-class RouletteSpinning extends RouletteState {}
+class PrizesLoaded extends RouletteState {
+  final List<Prize> prizes;
 
-class RouletteStopped extends RouletteState {
-  final String result;
-
-  const RouletteStopped(this.result);
-
-  @override
-  List<Object> get props => [result];
+  PrizesLoaded(this.prizes);
 }
 
-// State representing when prizes have been updated
-class PrizesLoaded extends RouletteState {
-  final List<String> prizes;
+class RouletteSpinning extends RouletteState {
+  final Prize prize;
 
-  const PrizesLoaded(this.prizes);
+  RouletteSpinning({required this.prize});
+}
 
-  @override
-  List<Object> get props => [prizes];
+class RouletteStopped extends RouletteState {
+  final Prize prize;
+
+  RouletteStopped({required this.prize});
+}
+
+class RouletteError extends RouletteState {
+  final String message;
+
+  RouletteError(this.message);
 }

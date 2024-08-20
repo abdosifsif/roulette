@@ -1,49 +1,32 @@
-import 'package:equatable/equatable.dart';
+import 'package:app_roulette/models/prize.dart';
 
-abstract class RouletteEvent extends Equatable {
-  const RouletteEvent();
-
-  @override
-  List<Object> get props => [];
-}
+abstract class RouletteEvent {}
 
 class LoadPrizes extends RouletteEvent {}
 
 class AddPrize extends RouletteEvent {
-  final String prize;
+  final Prize prize;
 
-  const AddPrize(this.prize);
-
-  @override
-  List<Object> get props => [prize];
+  AddPrize({required this.prize});
 }
 
 class EditPrize extends RouletteEvent {
   final int index;
-  final String newPrize;
+  final Prize newPrize;
 
-  const EditPrize(this.index, this.newPrize);
-
-  @override
-  List<Object> get props => [index, newPrize];
+  EditPrize({required this.index, required this.newPrize});
 }
 
 class DeletePrize extends RouletteEvent {
   final int index;
 
-  const DeletePrize(this.index);
-
-  @override
-  List<Object> get props => [index];
+  DeletePrize({required this.index});
 }
 
 class StartRoulette extends RouletteEvent {}
 
 class SetRouletteResult extends RouletteEvent {
-  final String result;
+  final Prize result;
 
-  const SetRouletteResult(this.result);
-
-  @override
-  List<Object> get props => [result];
+  SetRouletteResult({required this.result});
 }

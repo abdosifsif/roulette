@@ -1,15 +1,15 @@
-// ignore_for_file: use_build_context_synchronously
-
+import 'dart:math';
+import 'package:app_roulette/pages/edit_prize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_roulette/bloc/app_roulette_bloc.dart';
 import 'package:app_roulette/bloc/app_roulette_event.dart';
 import 'package:app_roulette/bloc/app_roulette_state.dart';
+import 'package:app_roulette/models/prize.dart';
 import 'package:roulette/roulette.dart';
-import 'dart:math';
 
 class RoulettePage extends StatefulWidget {
-  const RoulettePage({super.key});
+  const RoulettePage({Key? key}) : super(key: key);
 
   @override
   State<RoulettePage> createState() => _RoulettePageState();
@@ -17,7 +17,7 @@ class RoulettePage extends StatefulWidget {
 
 class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMixin {
   RouletteController? _rouletteController;
-  List<String> _prizes = [];
+  List<Prize> _prizes = [];
 
   @override
   void initState() {
@@ -31,12 +31,13 @@ class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMix
     super.dispose();
   }
 
-  void _initializeRouletteController(List<String> prizes) {
-    final colors = _generateColors(prizes.length);
+  void _initializeRouletteController(List<Prize> prizes) {
+    final prizeNames = prizes.map((prize) => prize.name).toList();
+    final colors = _generateColors(prizeNames.length);
     _rouletteController?.dispose();
     _rouletteController = RouletteController(
       group: RouletteGroup(
-        prizes.asMap().entries.map((entry) {
+        prizeNames.asMap().entries.map((entry) {
           final index = entry.key;
           final prize = entry.value;
           return RouletteUnit.text(
@@ -52,6 +53,24 @@ class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMix
     });
   }
 
+  void _showPrizeDialog(Prize prize) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Prize Result'),
+          content: Text('Congratulations! You won ${prize.name}.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,14 +81,13 @@ class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMix
             icon: const Icon(Icons.edit),
             onPressed: () async {
               if (_prizes.isNotEmpty) {
-                final result = await Navigator.pushNamed(
+                final result = await Navigator.push(
                   context,
-                  '/editPrize',
-                  arguments: {
-                    'index': 0, 
-                    'currentPrize': _prizes[0], 
-                  },
+                  MaterialPageRoute(
+                    builder: (context) => EditPrizesPage(prizes: _prizes),
+                  ),
                 );
+
                 if (result == true) {
                   context.read<RouletteBloc>().add(LoadPrizes());
                 }
@@ -99,9 +117,7 @@ class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMix
             _initializeRouletteController(state.prizes);
           }
           if (state is RouletteStopped) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.result)),
-            );
+            _showPrizeDialog(state.prize);
           }
         },
         builder: (context, state) {
@@ -158,13 +174,8 @@ class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMix
                         offset: offset,
                       );
 
-                      final prizeMessage = context
-                          .read<RouletteBloc>()
-                          .determinePrize(selectedUnit, _prizes);
-
-                      context
-                          .read<RouletteBloc>()
-                          .add(SetRouletteResult(prizeMessage));
+                      final Prize selectedPrize = _prizes[selectedUnit];
+                      context.read<RouletteBloc>().add(SetRouletteResult(result: selectedPrize));
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Prizes are not loaded yet!')),
