@@ -159,31 +159,31 @@ class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMix
                   const Text('Press the button to spin'),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () async {
-                    final random = Random();
-                    if (_rouletteController?.group.units.isNotEmpty ?? false) {
-                      final int selectedUnit = random.nextInt(
-                        _rouletteController!.group.units.length,
-                      );
-                      final double offset = random.nextDouble();
+  onPressed: () async {
+    if (_rouletteController?.group.units.isNotEmpty ?? false) {
+      context.read<RouletteBloc>().add(StartRoulette());
 
-                      context.read<RouletteBloc>().add(StartRoulette());
+      // Determine the prize based on the percentage
+      final Prize selectedPrize = context.read<RouletteBloc>().determinePrize(_prizes);
+      
+      // Find the index of the selected prize
+      final int selectedUnit = _prizes.indexOf(selectedPrize);
+      final double offset = Random().nextDouble();
 
-                      await _rouletteController!.rollTo(
-                        selectedUnit,
-                        offset: offset,
-                      );
+      await _rouletteController!.rollTo(
+        selectedUnit,
+        offset: offset,
+      );
 
-                      final Prize selectedPrize = _prizes[selectedUnit];
-                      context.read<RouletteBloc>().add(SetRouletteResult(result: selectedPrize));
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Prizes are not loaded yet!')),
-                      );
-                    }
-                  },
-                  child: const Text('Spin Roulette'),
-                ),
+      context.read<RouletteBloc>().add(SetRouletteResult(result: selectedPrize));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Prizes are not loaded yet!')),
+      );
+    }
+  },
+  child: const Text('Spin Roulette'),
+),
               ],
             ),
           );

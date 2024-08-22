@@ -1,12 +1,12 @@
 class Prize {
   final String name;
-  final int percentage; // Changed to int
+  final double percentage; // Changed to double
 
   Prize({required this.name, required this.percentage});
 
   // Default or empty prize
   static Prize empty() {
-    return Prize(name: '', percentage: 0);
+    return Prize(name: '', percentage: 0.0); // Changed to double
   }
 
   // Convert a Prize to a String for storage
@@ -20,7 +20,7 @@ class Prize {
       throw FormatException('Invalid prize format');
     }
     final name = parts[0].trim();
-    final percentage = int.tryParse(parts[1].trim()) ?? 0; // Changed to int
+    final percentage = double.tryParse(parts[1].trim()) ?? 0.0; // Changed to double
     return Prize(name: name, percentage: percentage);
   }
 }

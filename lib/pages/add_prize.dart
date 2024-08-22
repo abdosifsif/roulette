@@ -38,7 +38,7 @@ class _AddPrizePageState extends State<AddPrizePage> {
   void _savePrize() async {
     final newPrize = Prize(
       name: _nameController.text,
-      percentage: int.tryParse(_percentageController.text) ?? 0,
+      percentage: double.tryParse(_percentageController.text) ?? 0,
     );
 
     // Retrieve the current list of prizes from SharedPreferences
