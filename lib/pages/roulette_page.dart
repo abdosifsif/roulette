@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:app_roulette/pages/edit_prize.dart';
+import 'package:app_roulette/pages/curve.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_roulette/bloc/app_roulette_bloc.dart';
@@ -7,6 +7,7 @@ import 'package:app_roulette/bloc/app_roulette_event.dart';
 import 'package:app_roulette/bloc/app_roulette_state.dart';
 import 'package:app_roulette/models/prize.dart';
 import 'package:roulette/roulette.dart';
+import 'edit_prize.dart';
 
 class RoulettePage extends StatefulWidget {
   const RoulettePage({Key? key}) : super(key: key);
@@ -18,7 +19,7 @@ class RoulettePage extends StatefulWidget {
 class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMixin {
   RouletteController? _rouletteController;
   List<Prize> _prizes = [];
-
+final DecelerationCurve _decelerationCurve = DecelerationCurve();
   @override
   void initState() {
     super.initState();
@@ -156,23 +157,24 @@ class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMix
                 if (state is RouletteSpinning)
                   const CircularProgressIndicator()
                 else
-                  const Text('Press the button to spin'),
-                const SizedBox(height: 20),
-                ElevatedButton(
-  onPressed: () async {
+                  ElevatedButton(
+  onPressed: _prizes.isNotEmpty ? () async {
     if (_rouletteController?.group.units.isNotEmpty ?? false) {
       context.read<RouletteBloc>().add(StartRoulette());
 
-      // Determine the prize based on the percentage
       final Prize selectedPrize = context.read<RouletteBloc>().determinePrize(_prizes);
-      
-      // Find the index of the selected prize
       final int selectedUnit = _prizes.indexOf(selectedPrize);
       final double offset = Random().nextDouble();
 
+      // Ensure the wheel is reset before spinning
+      _rouletteController!.resetAnimation();
+
       await _rouletteController!.rollTo(
         selectedUnit,
+        duration: const Duration(seconds: 10), 
+        minRotateCircles: 3,
         offset: offset,
+        curve: _decelerationCurve,
       );
 
       context.read<RouletteBloc>().add(SetRouletteResult(result: selectedPrize));
@@ -181,7 +183,7 @@ class _RoulettePageState extends State<RoulettePage> with TickerProviderStateMix
         const SnackBar(content: Text('Prizes are not loaded yet!')),
       );
     }
-  },
+  } : null,
   child: const Text('Spin Roulette'),
 ),
               ],

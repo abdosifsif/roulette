@@ -98,24 +98,24 @@ class RouletteBloc extends Bloc<RouletteEvent, RouletteState> {
     }
   }
 
- Prize determinePrize(List<Prize> prizes) {
-  final random = Random();
-  final totalWeight = prizes.fold(0.0, (sum, prize) => sum + prize.percentage);
+  Prize determinePrize(List<Prize> prizes) {
+    final random = Random();
+    final totalWeight = prizes.fold(0.0, (sum, prize) => sum + prize.percentage);
 
-  if (totalWeight <= 0) {
-    throw Exception('Total percentage must be greater than 0');
-  }
-
-  double randomValue = random.nextDouble() * totalWeight;
-  for (var prize in prizes) {
-    randomValue -= prize.percentage;
-    if (randomValue <= 0) {
-      return prize;
+    if (totalWeight <= 0) {
+      throw Exception('Total percentage must be greater than 0');
     }
-  }
 
-  return prizes.last;
-}
+    double randomValue = random.nextDouble() * totalWeight;
+    for (var prize in prizes) {
+      randomValue -= prize.percentage;
+      if (randomValue <= 0) {
+        return prize;
+      }
+    }
+
+    return prizes.last;
+  }
 
   Future<void> _onSetRouletteResult(SetRouletteResult event, Emitter<RouletteState> emit) async {
     emit(RouletteStopped(prize: event.result));
